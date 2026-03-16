@@ -22,9 +22,9 @@
     <h1>에임(EAIM) 메이커 🌿</h1>
     <p class="subtitle">Emotion · Artscape · Interactive · Musicalization<br>정서 지능을 깨우는 예술 융합 학습 도구</p>
     <p>📝 오늘의 마음을 한 줄의 글로 들려주세요</p>
-    <textarea id="userInput" placeholder="예: 운동장에서 친구들과 놀 때 제일 행복해요!"></textarea>
+    <textarea id="userInput" placeholder="예: 신기한 운동장 소식!"></textarea>
     <button class="btn" onclick="generateArt()">✨ 예술 작품으로 변환하기</button>
-    <div id="loading" class="loading">에임 엔진이 감정을 분석하여 예술로 빚어내는 중입니다... ⏳</div>
+    <div id="loading" class="loading">에임 엔진이 감정을 분석 중입니다... ⏳</div>
     <div id="resultArea" class="result-box">
         <h3>📖 에임 포엠 (오늘의 시)</h3>
         <pre id="poemDisplay"></pre>
@@ -38,41 +38,41 @@
     async function generateArt() {
         const apiKey = "AIzaSyD9JwzBCGb8idv-pi3zUchRQeSwR2ELT9k";
         const text = document.getElementById('userInput').value;
-
-        if (!text) { alert("마음을 입력해 주세요!"); return; }
+        if (!text) { alert("내용을 입력해주세요!"); return; }
 
         document.getElementById('loading').style.display = 'block';
         document.getElementById('resultArea').style.display = 'none';
 
-        // 엔진 주소 형식을 v1beta/models/gemini-1.5-flash:generateContent 로 정확히 맞췄습니다.
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-
-        const prompt = `아이의 글: "${text}"\n\n위 글을 읽고 따뜻한 위로와 공감이 담긴 4-6행의 시를 지어주고, 어울리는 음악 스타일을 추천해줘. 반드시 다음 JSON 형식으로만 답해줘: { "poem": "시 내용", "music": "음악 스타일" }`;
+        // 주소를 가장 범용적인 'gemini-pro'로 변경했습니다.
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: { responseMimeType: "application/json" } 
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: `"${text}"에 대해 공감 시 1편과 Suno AI 스타일을 JSON { "poem": "...", "music": "..." } 로 작성해줘.` }] }]
                 })
             });
 
             const data = await response.json();
             
             if (data.error) {
-                alert("엔진 응답 오류: " + data.error.message);
+                alert("구글 엔진 메시지: " + data.error.message);
                 return;
             }
 
-            const result = JSON.parse(data.candidates[0].content.parts[0].text);
+            const responseText = data.candidates[0].content.parts[0].text;
+            // JSON 형식만 깔끔하게 추출하는 안전장치
+            const jsonMatch = responseText.match(/\{.*\}/s);
+            const result = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+
             document.getElementById('poemDisplay').innerText = result.poem;
             document.getElementById('musicDisplay').innerText = result.music;
             document.getElementById('resultArea').style.display = 'block';
         } catch (error) {
             console.error(error);
-            alert("연결 일시 지연! 잠시 후 다시 시도해 주세요.");
+            alert("연결 지연! 잠시 후 다시 시도해 주세요.");
         } finally {
             document.getElementById('loading').style.display = 'none';
         }
