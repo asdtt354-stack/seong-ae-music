@@ -36,6 +36,7 @@
 
 <script>
     async function generateArt() {
+        // 성애 님의 API 키
         const apiKey = "AIzaSyD9JwzBCGb8idv-pi3zUchRQeSwR2ELT9k";
         const text = document.getElementById('userInput').value;
         if (!text) { alert("내용을 입력해주세요!"); return; }
@@ -43,15 +44,15 @@
         document.getElementById('loading').style.display = 'block';
         document.getElementById('resultArea').style.display = 'none';
 
-        // 주소를 가장 범용적인 'gemini-pro'로 변경했습니다.
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+        // 주소 형식을 v1 버전의 gemini-1.5-flash로 가장 확실하게 수정했습니다.
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: `"${text}"에 대해 공감 시 1편과 Suno AI 스타일을 JSON { "poem": "...", "music": "..." } 로 작성해줘.` }] }]
+                    contents: [{ parts: [{ text: `아이의 감정 글: "${text}"\n\n이 글을 읽고 위로와 공감이 담긴 4~6행의 시 한 편과 Suno AI용 음악 추천 프롬프트를 JSON { "poem": "...", "music": "..." } 형식으로 작성해줘.` }] }]
                 })
             });
 
@@ -63,16 +64,18 @@
             }
 
             const responseText = data.candidates[0].content.parts[0].text;
-            // JSON 형식만 깔끔하게 추출하는 안전장치
-            const jsonMatch = responseText.match(/\{.*\}/s);
-            const result = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+            // JSON 데이터만 추출
+            const jsonStart = responseText.indexOf('{');
+            const jsonEnd = responseText.lastIndexOf('}') + 1;
+            const jsonString = responseText.substring(jsonStart, jsonEnd);
+            const result = JSON.parse(jsonString);
 
             document.getElementById('poemDisplay').innerText = result.poem;
             document.getElementById('musicDisplay').innerText = result.music;
             document.getElementById('resultArea').style.display = 'block';
         } catch (error) {
             console.error(error);
-            alert("연결 지연! 잠시 후 다시 시도해 주세요.");
+            alert("연결 일시 지연! 잠시 후 다시 한 번만 더 눌러주세요.");
         } finally {
             document.getElementById('loading').style.display = 'none';
         }
