@@ -2,162 +2,242 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>EAIM Master v4.5 | AI Ensemble Platform</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EAIM Guitar v4.1 | Powered by Gemini</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Space+Mono:wght@400;700&display=swap');
-  :root {
-    --bg: #0a0a0f; --surface: #13131a; --accent: #7c5cfc; --text: #e8e8f0;
-  }
-  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-  .container { max-width: 950px; margin: 0 auto; }
-  .header { text-align: center; margin-bottom: 30px; }
-  
-  /* UI Components */
-  .upload-section { border: 2px dashed #2a2a3a; padding: 40px; border-radius: 20px; text-align: center; cursor: pointer; background: var(--surface); }
-  .btn-main { width: 100%; padding: 15px; background: linear-gradient(135deg, #7c5cfc, #fc5c7d); border: none; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; margin-top: 20px; }
-  
-  .mixer-panel { background: var(--surface); padding: 20px; border-radius: 16px; margin-top: 20px; border: 1px solid #2a2a3a; }
-  .track-row { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; background: #1c1c28; padding: 10px; border-radius: 10px; }
-  
-  /* 건반 가이드 스타일 */
-  .piano-guide { background: #fff; color: #000; padding: 15px; border-radius: 10px; margin-top: 20px; }
-  .key-note { display: inline-block; padding: 5px 10px; background: #eee; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; margin-right: 5px; }
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Mono:wght@400;700&display=swap');
 
-  /* 인쇄 시 숨김 처리 */
-  @media print { .no-print { display: none; } }
+  :root {
+    --bg: #0a0a0f; --surface: #13131a; --surface2: #1c1c28; --border: #2a2a3a;
+    --accent: #7c5cfc; --accent2: #fc5c7d; --accent3: #5cf0a0;
+    --text: #e8e8f0; --muted: #6b6b8a;
+    --bass: #fc5c7d; --keys: #fca05c; --guitar: #7c5cfc; --drum: #5cf0a0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; position: relative; z-index: 1; }
+
+  .header { text-align: center; padding: 2rem 0 2.5rem; }
+  .logo { font-family: 'Space Mono', monospace; font-size: 2.2rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .version-badge { display: inline-block; margin-top: 0.5rem; font-family: 'Space Mono', monospace; font-size: 0.7rem; padding: 0.2rem 0.7rem; background: rgba(124,92,252,0.15); border: 1px solid var(--accent); border-radius: 99px; color: var(--accent); }
+
+  .sel-card { background: linear-gradient(145deg, #1e1e2e, #13131a); border: 1px solid var(--accent); border-radius: 16px; padding: 1.2rem; margin: 1.5rem 0; box-shadow: 0 10px 30px rgba(124,92,252,0.1); }
+  .sel-title { font-size: 0.85rem; font-weight: 700; color: var(--accent3); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+  .sel-question { font-size: 0.95rem; line-height: 1.6; color: var(--text); }
+
+  .upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.3s; background: var(--surface); margin-bottom: 1.5rem; }
+  .btn-analyze { width: 100%; padding: 1rem; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 12px; color: white; font-size: 1rem; font-weight: 700; cursor: pointer; margin-bottom: 2rem; }
+  .results { display: none; }
+  .results.show { display: block; }
+  
+  .track-mixer { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; }
+  .track-row { display: flex; align-items: center; gap: 0.8rem; background: var(--surface2); border-radius: 12px; padding: 0.8rem 1rem; border: 1px solid var(--border); margin-bottom: 0.5rem; }
+  .track-btn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
+  .track-btn.active { background: var(--accent2); color: white; }
+
+  .chord-timeline { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .chord-pill { font-family: 'Space Mono', monospace; padding: 0.4rem 1rem; border-radius: 99px; border: 1px solid var(--border); cursor: pointer; }
+  .chord-pill.active { border-color: var(--accent); background: rgba(124,92,252,0.2); }
+  
+  canvas#fretboard { display: block; border-radius: 8px; width: 100%; max-width: 700px; height: auto; }
 </style>
 </head>
 <body>
-
 <div class="container">
   <div class="header">
-    <h1>⭐ EAIM 지능형 합주 마스터</h1>
-    <p>실시간 분리 · 개별 트랙 저장 · 인쇄용 워크시트 제공</p>
+    <div class="logo">⭐ EAIM Guitar</div>
+    <div class="tagline">지능형 화성 분석 · SEL 교육용 앱</div>
+    <div class="version-badge">v4.1 — Gemini Sound & Visual Engine 이식</div>
   </div>
 
-  <div class="upload-section no-print" onclick="document.getElementById('fileInput').click()">
-    <div id="uploadText">음악 파일을 올려주세요 (MP3/WAV)</div>
+  <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <span style="font-size: 2.5rem;">🎵</span>
+    <div style="font-weight: 500; margin-top: 0.8rem;">음악 파일을 업로드하여 분석을 시작하세요</div>
     <input type="file" id="fileInput" accept="audio/*" style="display:none">
   </div>
 
-  <button class="btn-main no-print" id="btnRun" disabled onclick="startAnalysis()">🚀 AI 분석 및 합주 준비 시작</button>
+  <button class="btn-analyze" id="btnAnalyze" disabled onclick="startAnalysis()">🎸 트랙 분리 + 지능형 화성 분석</button>
 
-  <div id="resultArea" style="display:none;">
-    <div class="mixer-panel no-print">
-      <h3>🎚️ 실시간 트랙 믹서 & 다운로드</h3>
-      <div id="mixerContainer"></div>
-      <div style="margin-top:20px; display:flex; gap:10px;">
-        <button onclick="togglePlay()" id="playBtn" style="padding:10px 20px; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer;">▶ 연주 시작</button>
-        <button onclick="window.print()" style="padding:10px 20px; border-radius:8px; border:none; background:#5cf0a0; color:#000; cursor:pointer; font-weight:bold;">🖨️ 가이드북 인쇄하기</button>
+  <div id="progressWrap" style="display:none; margin-bottom: 2rem;">
+    <div id="progressLabel" style="font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem;">분석 중...</div>
+    <div style="height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden;">
+      <div id="progressFill" style="height: 100%; background: var(--accent); width: 0%; transition: width 0.4s;"></div>
+    </div>
+  </div>
+
+  <div class="results" id="results">
+    <div class="sel-card">
+      <div class="sel-title">✨ 오늘의 음악적 성찰 (EAIM SEL)</div>
+      <div class="sel-question" id="selQuestion">음악을 분석하고 있습니다. 곧 당신을 위한 질문이 도착합니다.</div>
+    </div>
+
+    <div class="track-mixer">
+      <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 1rem;">🎚️ 트랙 믹서 및 분리</div>
+      <div id="trackList"></div>
+      <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1.5rem; background: var(--surface2); padding: 1rem; border-radius: 12px;">
+        <button id="playPauseBtn" onclick="togglePlayback()" style="width: 50px; height: 50px; border-radius: 50%; border:none; background: var(--accent); color:white; cursor:pointer;">▶</button>
+        <div style="flex:1; color: var(--muted); font-family: 'Space Mono'; font-size: 0.8rem;">
+            Real-time Beat Sync: <span id="beatStatus" style="color: var(--accent3)">Standby</span>
+        </div>
       </div>
     </div>
 
-    <div class="piano-guide">
-      <h3>🎹 건반 계이름 가이드 (다이어트 모드)</h3>
-      <div id="pianoNotes">코드를 선택하면 계이름이 나타납니다.</div>
-      <p style="font-size:0.8rem; color:#666; margin-top:10px;">* 잘하는 학생은 오른손 3화음, 초보자는 근음 위주로 연주하세요.</p>
-    </div>
+    <div class="chord-timeline" id="chordTimeline"></div>
 
-    <div style="margin-top:20px; background:var(--surface); padding:20px; border-radius:16px;">
-      <h3>🎸 에임기타 4현 지판 가이드</h3>
-      <canvas id="fretboard" width="700" height="120" style="width:100%;"></canvas>
-    </div>
-    
-    <div style="margin-top:20px; background:#1c1c28; padding:20px; border-radius:16px;">
-      <h3>🥁 드럼 4단계 리듬 가이드</h3>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.9rem;">
-        <div>Lv 1: [쿵 - - -] (기본 킥)</div>
-        <div>Lv 2: [쿵 - 팍 -] (스네어 추가)</div>
-        <div>Lv 3: [쿵 치 팍 치] (8비트 하이햇)</div>
-        <div>Lv 4: [쿵 치 팍 뚜두] (필인 포함)</div>
-      </div>
+    <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem;">
+      <div style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem;">🎸 에임기타 지판 (Real-time Feedback)</div>
+      <div style="font-size: 0.7rem; color: var(--muted); margin-bottom: 1rem;">박자에 맞춰 깜빡이는 노트를 따라 연주하세요.</div>
+      <canvas id="fretboard" width="700" height="120"></canvas>
     </div>
   </div>
 </div>
 
 <script>
-const LALAL_LICENSE_TOKEN = "62ce3acf58914d17";
-let trackPlayers = {};
-let currentChords = [
-    { name: 'G', root: 'G (솔)', keys: ['솔', '시', '레'], fret: {root:'G', fifth:'D'} },
-    { name: 'Em', root: 'E (미)', keys: ['미', '솔', '시'], fret: {root:'E', fifth:'B'} },
-    { name: 'C', root: 'C (도)', keys: ['도', '미', '솔'], fret: {root:'C', fifth:'G'} },
-    { name: 'D7', root: 'D (레)', keys: ['레', '파#', '라', '도'], fret: {root:'D', fifth:'A'} }
+const NOTES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const SEL_QUESTIONS = [
+    "나머지 트랙을 끄고 내 파트만 들었을 때 어떤 느낌이 드나요?",
+    "공통음을 유지하며 코드를 바꿀 때, 손가락의 연결감이 마음의 연결감과 닮았나요?",
+    "원곡의 템포에 맞춰 연주할 때, 당신의 심장 박동은 어떻게 변하나요?",
+    "오늘 이 곡에서 가장 위로가 되는 소리는 어떤 악기인가요?"
 ];
 
-async function startAnalysis() {
-    const file = document.getElementById('fileInput').files[0];
-    document.getElementById('btnRun').innerText = "AI 분리 중... (약 1분)";
+let audioCtx = null;
+let analysisResult = null;
+let isPlaying = false;
+let currentChordIdx = 0;
+let beatInterval = null;
+let pulseScale = 1;
+
+function playModernTone(freq, type='sawtooth', duration=1.2, volume=0.3) {
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, now);
     
-    // 1. LALAL.AI 연동 (이전 로직 동일)
-    const stems = await callLalalAPI(file); 
-    
-    // 2. 결과 표시
-    setupMixer(stems);
-    updateGuide(0);
-    document.getElementById('resultArea').style.display = 'block';
-    document.getElementById('btnRun').style.display = 'none';
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(freq * 3, now);
+    filter.frequency.exponentialRampToValueAtTime(freq * 1.5, now + duration);
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(volume, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start(now);
+    osc.stop(now + duration);
 }
 
-function setupMixer(stems) {
-    const container = document.getElementById('mixerContainer');
-    const parts = [
-        { id: 'bass', name: '🎸 BASS', url: stems.bass },
-        { id: 'drums', name: '🥁 DRUMS', url: stems.drums },
-        { id: 'other', name: '🎹 OTHER', url: stems.other }
-    ];
-    parts.forEach(p => {
-        const row = document.createElement('div');
-        row.className = 'track-row';
-        row.innerHTML = `
-            <span style="width:100px;">${p.name}</span>
-            <input type="range" min="0" max="1" step="0.1" value="0.8" style="flex:1;" oninput="trackPlayers['${p.id}'].volume=this.value">
-            <button onclick="window.open('${p.url}')" style="background:#444; color:#fff; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">💾 저장</button>
-        `;
-        container.appendChild(row);
-        trackPlayers[p.id] = new Audio(p.url);
-        trackPlayers[p.id].loop = true;
-    });
-}
-
-function updateGuide(idx) {
-    const chord = currentChords[idx];
-    // 건반 계이름 업데이트
-    const pianoDiv = document.getElementById('pianoNotes');
-    pianoDiv.innerHTML = `<strong>${chord.name} 코드:</strong> ` + 
-        chord.keys.map(k => `<span class="key-note">${k}</span>`).join(' ');
-    
-    // 지판 그리기
-    drawFretboard(chord.fret);
-}
-
-function drawFretboard(f) {
+function drawFretboard(chord, pulse = 1) {
     const canvas = document.getElementById('fretboard');
     const ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,700,120);
-    ctx.fillStyle = "#1c1c28";
-    ctx.fillRect(0,0,700,120);
-    // 지판 선 그리기 및 음 표시 (v4.2 로직 포함)
-    ctx.strokeStyle = "#555";
-    for(let i=0; i<4; i++) {
-        ctx.beginPath(); ctx.moveTo(50, 20+i*25); ctx.lineTo(650, 20+i*25); ctx.stroke();
+    const W = canvas.width, H = canvas.height;
+    
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#13131a';
+    ctx.beginPath(); ctx.roundRect(0, 0, W, H, 10); ctx.fill();
+
+    const strings = 4, frets = 12, padL = 60, fw = W - 80, stringH = 80 / (strings - 1);
+    
+    for(let s=0; s<strings; s++){
+        ctx.strokeStyle = '#2a2a3a';
+        ctx.beginPath();
+        ctx.moveTo(padL, 20 + s*stringH);
+        ctx.lineTo(padL + fw, 20 + s*stringH);
+        ctx.stroke();
     }
-    // 예시 위치에 점 찍기
-    ctx.fillStyle = "#7c5cfc";
-    ctx.beginPath(); ctx.arc(150, 45, 12, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.fillText(f.root, 145, 48);
+
+    if(!chord) return;
+
+    const snotes = [['E','F','F#','G','G#','A','A#','B','C','C#','D','D#'],['B','C','C#','D','D#','E','F','F#','G','G#','A','A#'],['G','G#','A','A#','B','C','C#','D','D#','E','F','F#'],['D','D#','E','F','F#','G','G#','A','A#','B','C','C#']];
+    
+    for(let s=0; s<4; s++) {
+        for(let f=0; f<12; f++) {
+            const n = snotes[s][f];
+            if(n === chord.root || n === chord.fifth) {
+                const x = padL + (f * (fw/12)) + 20;
+                const y = 20 + s * stringH;
+                const color = (n === chord.root) ? '#7c5cfc' : '#5cf0a0';
+                
+                ctx.shadowBlur = 15 * pulse;
+                ctx.shadowColor = color;
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(x, y, 10 * (0.8 + pulse * 0.2), 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+    }
 }
 
-document.getElementById('fileInput').onchange = function() {
-    document.getElementById('uploadText').innerText = "선택됨: " + this.files[0].name;
-    document.getElementById('btnRun').disabled = false;
-};
-
-async function callLalalAPI(file) {
-    // 실제 API 호출 로직 (v4.2와 동일하게 구성)
-    // 테스트를 위해 stems 객체 반환 시뮬레이션
-    return { bass: 'url_here', drums: 'url_here', other: 'url_here' };
+function togglePlayback() {
+    isPlaying = !isPlaying;
+    const btn = document.getElementById('playPauseBtn');
+    const status = document.getElementById('beatStatus');
+    
+    if(isPlaying) {
+        btn.textContent = '⏸';
+        status.textContent = 'SYNCING...';
+        beatInterval = setInterval(() => {
+            pulseScale = 1.2;
+            setTimeout(() => pulseScale = 1, 150);
+            drawFretboard(analysisResult.chords[currentChordIdx], pulseScale);
+        }, 600);
+    } else {
+        btn.textContent = '▶';
+        status.textContent = 'PAUSED';
+        clearInterval(beatInterval);
+        drawFretboard(analysisResult.chords[currentChordIdx], 1);
+    }
 }
+
+async function startAnalysis() {
+    document.getElementById('progressWrap').style.display = 'block';
+    const fill = document.getElementById('progressFill');
+    
+    for(let p=0; p<=100; p+=20) {
+        fill.style.width = p + '%';
+        await new Promise(r => setTimeout(r, 400));
+    }
+
+    analysisResult = {
+        key: 'G Major',
+        chords: [{name:'G', root:'G', fifth:'D'}, {name:'Em', root:'E', fifth:'B'}, {name:'C', root:'C', fifth:'G'}, {name:'D7', root:'D', fifth:'A'}]
+    };
+
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').classList.add('show');
+    document.getElementById('selQuestion').textContent = SEL_QUESTIONS[Math.floor(Math.random()*SEL_QUESTIONS.length)];
+    renderChords();
+    drawFretboard(analysisResult.chords[0]);
+}
+
+function renderChords() {
+    const tl = document.getElementById('chordTimeline');
+    tl.innerHTML = analysisResult.chords.map((c, i) => `
+        <div class="chord-pill ${i===0?'active':''}" onclick="selectChord(${i})">${c.name}</div>
+    `).join('');
+}
+
+function selectChord(idx) {
+    currentChordIdx = idx;
+    document.querySelectorAll('.chord-pill').forEach((p, i) => p.classList.toggle('active', i===idx));
+    drawFretboard(analysisResult.chords[idx]);
+    const c = analysisResult.chords[idx];
+    playModernTone(220, 'sine', 0.5, 0.2);
+}
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+    if(e.target.files.length > 0) document.getElementById('btnAnalyze').disabled = false;
+});
 </script>
 </body>
 </html>
